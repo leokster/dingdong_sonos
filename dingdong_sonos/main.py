@@ -1,11 +1,13 @@
-import soco
-import click
 import os
+import socket
+import subprocess
+import sys
+import time
+
+import click
+import soco
 from soco import SoCo
 from soco.data_structures import DidlMusicTrack, DidlResource
-import subprocess
-import socket
-import time
 
 
 def get_local_ip():
@@ -22,7 +24,7 @@ def get_local_ip():
 def start_http_server(port="8001"):
     media_folder = os.path.join(os.path.dirname(__file__), "media")
     httpserver = subprocess.Popen(
-        ["python", "-m", "http.server", str(port)], cwd=media_folder
+        [sys.executable, "-m", "http.server", str(port)], cwd=media_folder
     )
     return httpserver
 
