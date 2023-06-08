@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+
+[project]
+name = "dingdong_sonos"
+version = "0.1.0"
+description = "Ring the Gong"
+readme = "README.md"
+authors = [{name = "Tim Rohner", email = "info@timrohner.ch"}]
+keywords = ["dingdong_sonos"]
+# homepage = "https://github.com/leokster/dingdong_sonos"
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8"
+]
+dependencies = [
+    "soco>=0.29.1",
+    "click==8.1.3"
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "build>=0.10.0"
+]
+
+[project.scripts]
+dingdong = "dingdong_sonos.main:main"
+
+[project.urls]
+Source = "https://github.com/leokster/dingdong_sonos"
+
+[tool.setuptools.packages.find]
+include = ["dingdong_sonos", "dingdong_sonos.*"]
+
+# [tool.setuptools.package-data]
+# "*" = ["*.html"]
+
+[tool.setuptools_scm]
+write_to = "dingdong_sonos/_version.py"
