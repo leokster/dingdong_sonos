@@ -1,3 +1,4 @@
+import logging
 import os
 import socket
 import subprocess
@@ -23,10 +24,16 @@ def get_local_ip():
 
 def start_http_server(port="8001"):
     media_folder = os.path.join(os.path.dirname(__file__), "media")
+    # no output
     httpserver = subprocess.Popen(
         [sys.executable, "-m", "http.server", str(port)], cwd=media_folder
     )
     return httpserver
+
+
+def get_allowed_files():
+    media_folder = os.path.join(os.path.dirname(__file__), "media")
+    return [f for f in os.listdir(media_folder) if f.endswith(".mp3")]
 
 
 def group_all_sonos():
@@ -52,12 +59,18 @@ def group_all_sonos():
 )
 @click.option("--port", default="8001", help="Port to run the HTTP server on")
 @click.option("--volume", default=60, help="Volume to play the sound at")
-def main(sonos_ip, port, volume):
+@click.option("--sound", default="school-bell-sound.mp3", help="Sound to play")
+def main(sonos_ip, port, volume, sound):
     # Get the IP of this machine in the local network
     host_address = f"{get_local_ip()}:{port}"
 
+    if sound not in get_allowed_files():
+        allowed = "\n".join([f" - {x}" for x in get_allowed_files()])
+        logging.error(f"Sound {sound} not in allowed. Choose from: \n{allowed}")
+        exit(1)
+
     # Specify the path to the MP3 file on your computer
-    path_to_mp3 = f"http://{host_address}/school-bell-sound.mp3"
+    path_to_mp3 = f"http://{host_address}/{sound}"
 
     # Specify the IP address of the Sonos speaker
 
