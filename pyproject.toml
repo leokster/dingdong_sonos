@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel"]
 
 [project]
 name = "dingdong_sonos"
-version = "0.1.0"
+version = "0.1.1"
 description = "Ring the Gong"
 readme = "README.md"
 authors = [{name = "Tim Rohner", email = "info@timrohner.ch"}]
