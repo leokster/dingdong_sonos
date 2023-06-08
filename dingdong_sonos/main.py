@@ -10,6 +10,13 @@ import soco
 from soco import SoCo
 from soco.data_structures import DidlMusicTrack, DidlResource
 
+import socketserver
+
+
+def get_free_port():
+    with socketserver.TCPServer(("localhost", 0), None) as s:
+        return s.server_address[1]
+
 
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -22,7 +29,7 @@ def get_local_ip():
     return local_ip
 
 
-def start_http_server(port="8001"):
+def start_http_server(port):
     media_folder = os.path.join(os.path.dirname(__file__), "media")
     # no output
     httpserver = subprocess.Popen(
@@ -41,10 +48,12 @@ def group_all_sonos():
     speakers = list(soco.discover())
 
     # Get the first speaker as the coordinator
-    coordinator = speakers[0]
+    coordinator = speakers[0].group.coordinator
 
     # Join all other speakers to the coordinator
     for speaker in speakers[1:]:
+        if speaker.is_coordinator:
+            continue
         speaker.join(coordinator)
 
     # Print the group information
@@ -57,10 +66,13 @@ def group_all_sonos():
     default=None,
     help="IP address of the Sonos speaker, default is to us ALL speakers",
 )
-@click.option("--port", default="8001", help="Port to run the HTTP server on")
+@click.option("--port", default=None, help="Port to run the HTTP server on")
 @click.option("--volume", default=60, help="Volume to play the sound at")
 @click.option("--sound", default="school-bell-sound.mp3", help="Sound to play")
 def main(sonos_ip, port, volume, sound):
+    if not port:
+        port = get_free_port()
+
     # Get the IP of this machine in the local network
     host_address = f"{get_local_ip()}:{port}"
 
@@ -82,7 +94,7 @@ def main(sonos_ip, port, volume, sound):
         sonos.volume = volume
     else:
         group_all_sonos()
-        sonos = list(soco.discover())[0]
+        sonos = list(soco.discover())[0].group.coordinator
         sonos.group.volume = volume
 
     # Create a Resource object for the MP3 file
