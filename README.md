@@ -1,3 +1,5 @@
+[![Publish to PyPI.org](https://github.com/leokster/dingdong_sonos/actions/workflows/publish-pypi.yml/badge.svg?event=release)](https://github.com/leokster/dingdong_sonos/actions/workflows/publish-pypi.yml)
+
 # DinDong
 
 This is a Python script that allows you to play a DingDong on a Sonos speaker using a local HTTP server. The script uses the soco library to control the Sonos speaker and the click library for command line interface.
