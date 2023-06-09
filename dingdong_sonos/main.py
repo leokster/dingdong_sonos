@@ -39,8 +39,14 @@ def start_http_server(port):
 
 
 def get_allowed_files():
+    from enum import Enum
+
     media_folder = os.path.join(os.path.dirname(__file__), "media")
-    return [f for f in os.listdir(media_folder) if f.endswith(".mp3")]
+
+    allowed_files = [
+        f.replace(".mp3", "") for f in os.listdir(media_folder) if f.endswith(".mp3")
+    ]
+    return allowed_files
 
 
 def group_all_sonos():
@@ -68,7 +74,11 @@ def group_all_sonos():
 )
 @click.option("--port", default=None, help="Port to run the HTTP server on")
 @click.option("--volume", default=60, help="Volume to play the sound at")
-@click.option("--sound", default="school-bell-sound.mp3", help="Sound to play")
+@click.option(
+    "--sound",
+    default="school-bell-sound",
+    help="Sound to play",
+)
 def main(sonos_ip, port, volume, sound):
     if not port:
         port = get_free_port()
@@ -82,7 +92,7 @@ def main(sonos_ip, port, volume, sound):
         exit(1)
 
     # Specify the path to the MP3 file on your computer
-    path_to_mp3 = f"http://{host_address}/{sound}"
+    path_to_mp3 = f"http://{host_address}/{sound}.mp3"
 
     # Specify the IP address of the Sonos speaker
 
