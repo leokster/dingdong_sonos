@@ -2,7 +2,7 @@
 
 # DinDong
 
-This is a Python script that allows you to play a DingDong on a Sonos speaker using a local HTTP server. The script uses the soco library to control the Sonos speaker and the click library for command line interface.
+Add some flair to your office routine with the charm of nostalgia. Have you ever yearned for those good old school days when the bell signalled a break? Now, with dingdong-sonos, you can recreate that same anticipation in your office environment. Just one command transforms your Sonos system into a school bell, reminding everyone to take that well-deserved pause. Rediscover the joy of break time with dingdong-sonos 🔔!
 
 
 # How to use it
