@@ -51,8 +51,8 @@ def group_all_sonos():
     coordinator = speakers[0].group.coordinator
 
     # Join all other speakers to the coordinator
-    for speaker in speakers[1:]:
-        if speaker.is_coordinator:
+    for speaker in speakers:
+        if speaker == coordinator:
             continue
         speaker.join(coordinator)
 
