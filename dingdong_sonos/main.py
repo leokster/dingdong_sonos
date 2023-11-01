@@ -1,16 +1,16 @@
 import logging
 import os
 import socket
+import socketserver
 import subprocess
 import sys
 import time
 
 import click
+from gtts import gTTS
 import soco
 from soco import SoCo
 from soco.data_structures import DidlMusicTrack, DidlResource
-
-import socketserver
 
 
 def get_free_port():
@@ -39,8 +39,6 @@ def start_http_server(port):
 
 
 def get_allowed_files():
-    from enum import Enum
-
     media_folder = os.path.join(os.path.dirname(__file__), "media")
 
     allowed_files = [
@@ -66,6 +64,14 @@ def group_all_sonos():
     print("Sonos speakers grouped successfully.")
 
 
+def save_text_to_speech(text: str) -> None:
+    media_folder = os.path.join(os.path.dirname(__file__), "media")
+    myobj = gTTS(text=text, lang="en", slow=False)
+    file_path = os.path.join(media_folder, "text-to-speech.mp3")
+    myobj.save(file_path)
+    return None
+
+
 @click.command()
 @click.option(
     "--sonos_ip",
@@ -79,20 +85,25 @@ def group_all_sonos():
     default="school-bell-sound",
     help="Sound to play",
 )
-def main(sonos_ip, port, volume, sound):
+@click.option("--text-to-speech", default=None, help="Text to speech to play")
+def main(sonos_ip, port, volume, sound, text_to_speech):
     if not port:
         port = get_free_port()
 
     # Get the IP of this machine in the local network
     host_address = f"{get_local_ip()}:{port}"
 
-    if sound not in get_allowed_files():
-        allowed = "\n".join([f" - {x}" for x in get_allowed_files()])
-        logging.error(f"Sound {sound} not in allowed. Choose from: \n{allowed}")
-        exit(1)
+    if text_to_speech:
+        save_text_to_speech(text_to_speech)
+        path_to_mp3 = f"http://{host_address}/text-to-speech.mp3"
+    else:
+        if sound not in get_allowed_files():
+            allowed = "\n".join([f" - {x}" for x in get_allowed_files()])
+            logging.error(f"Sound {sound} not in allowed. Choose from: \n{allowed}")
+            exit(1)
 
-    # Specify the path to the MP3 file on your computer
-    path_to_mp3 = f"http://{host_address}/{sound}.mp3"
+        # Specify the path to the MP3 file on your computer
+        path_to_mp3 = f"http://{host_address}/{sound}.mp3"
 
     # Specify the IP address of the Sonos speaker
 
@@ -136,6 +147,11 @@ def main(sonos_ip, port, volume, sound):
     httpserver.terminate()
 
     print(path_to_mp3)
+
+    if text_to_speech:
+        os.remove(
+            os.path.join(os.path.dirname(__file__), "media", "text-to-speech.mp3")
+        )
 
 
 if __name__ == "__main__":
