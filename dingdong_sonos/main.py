@@ -7,10 +7,12 @@ import sys
 import time
 
 import click
-from gtts import gTTS
 import soco
+from gtts import gTTS
+from mutagen.mp3 import MP3
 from soco import SoCo
 from soco.data_structures import DidlMusicTrack, DidlResource
+from soco.snapshot import Snapshot
 
 
 def get_free_port():
@@ -21,7 +23,8 @@ def get_free_port():
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        # doesn't need to be reachable, this just gets the IP of the preferred outbound socket
+        # doesn't need to be reachable, this just gets the IP of the preferred
+        # outbound socket
         s.connect(("8.8.8.8", 80))
         local_ip = s.getsockname()[0]
     finally:
@@ -95,7 +98,8 @@ def main(sonos_ip, port, volume, sound, text_to_speech):
 
     if text_to_speech:
         save_text_to_speech(text_to_speech)
-        path_to_mp3 = f"http://{host_address}/text-to-speech.mp3"
+        mp3_local_path = "text-to-speech.mp3"
+        path_to_mp3 = f"http://{host_address}/{mp3_local_path}"
     else:
         if sound not in get_allowed_files():
             allowed = "\n".join([f" - {x}" for x in get_allowed_files()])
@@ -103,20 +107,35 @@ def main(sonos_ip, port, volume, sound, text_to_speech):
             exit(1)
 
         # Specify the path to the MP3 file on your computer
-        path_to_mp3 = f"http://{host_address}/{sound}.mp3"
+        mp3_local_path = f"{sound}.mp3"
+        path_to_mp3 = f"http://{host_address}/{mp3_local_path}"
 
     # Specify the IP address of the Sonos speaker
 
     # Start the HTTP server
     httpserver = start_http_server(port)
 
+    snap_shots = []
     if sonos_ip:
         sonos = SoCo(sonos_ip)
+        # Take as snapshot of the current state.
+        snap = Snapshot(sonos)
+        snap.snapshot()
+        snap_shots.append(snap)
         sonos.volume = volume
     else:
         group_all_sonos()
         sonos = list(soco.discover())[0].group.coordinator
+        # Take as snapshot of the current state.
+        for s in sonos.group.members:
+            snap = Snapshot(s)
+            snap.snapshot()
+            snap_shots.append(snap)
         sonos.group.volume = volume
+
+    # Get length of the mp3 file.
+    media_folder = os.path.join(os.path.dirname(__file__), "media")
+    mp3_length = MP3(os.path.join(media_folder, mp3_local_path)).info.length
 
     # Create a Resource object for the MP3 file
     mp3_resource = DidlResource(
@@ -140,13 +159,14 @@ def main(sonos_ip, port, volume, sound, text_to_speech):
     # Play the queue (i.e., the MP3 file we just added)
     sonos.play_from_queue(0)
 
-    # wait 3 seconds
-    time.sleep(3)
+    time.sleep(mp3_length)
 
     # Stop the HTTP server
     httpserver.terminate()
 
-    print(path_to_mp3)
+    print("Restoring state")
+    for snap in snap_shots:
+        snap.restore(fade=False)
 
     if text_to_speech:
         os.remove(
