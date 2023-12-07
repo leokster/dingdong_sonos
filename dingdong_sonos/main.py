@@ -88,7 +88,7 @@ def save_text_to_speech(text: str) -> None:
     default="school-bell-sound",
     help="Sound to play",
 )
-@click.option("--text-to-speech", default=None, help="Text to speech to play")
+@click.option("-t", "--text-to-speech", default=None, help="Text to speech to play")
 def main(sonos_ip, port, volume, sound, text_to_speech):
     if not port:
         port = get_free_port()
